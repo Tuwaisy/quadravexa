@@ -59,12 +59,6 @@ export default function Footer() {
           <p className="text-gray-400 text-sm">
             © 2025 Quadravexa. All rights reserved.
           </p>
-          <a 
-            href="https://readdy.ai/?origin=logo" 
-            className="text-gray-400 hover:text-cyan-400 transition-colors text-sm mt-2 md:mt-0"
-          >
-            Powered by Readdy
-          </a>
         </div>
       </div>
     </footer>

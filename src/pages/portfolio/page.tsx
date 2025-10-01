@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 
 import Header from '../../components/feature/Header';
 import Footer from '../../components/feature/Footer';
@@ -6,65 +7,244 @@ import AnimatedIcon from '../../components/base/AnimatedIcon';
 import ScrollAnimationWrapper from '../../components/base/ScrollAnimationWrapper';
 import FloatingShapes from '../../components/base/FloatingShapes';
 
-export default function Portfolio() {
-  const projects = [
-    {
-      title: 'Shuhna Logistics Platform',
-      description: 'A comprehensive e-commerce logistics solution featuring multi-carrier integration, real-time tracking, automated shipping workflows, and advanced analytics dashboard. Built with React, Node.js, and integrated with major shipping providers.',
-      category: 'Web Platform',
-      technologies: ['React', 'Node.js', 'MongoDB', 'Express', 'Socket.io'],
-      image: 'https://readdy.ai/api/search-image?query=modern%20logistics%20dashboard%20interface%20with%20shipping%20tracking%2C%20clean%20blue%20and%20white%20design%2C%20professional%20business%20application%2C%20multiple%20carrier%20integration%2C%20e-commerce%20platform%2C%20minimalist%20UI%20design%2C%20data%20visualization%20charts%2C%20futuristic%20tech%20interface%2C%203D%20elements&width=600&height=400&seq=shuhna-logistics-detail&orientation=landscape',
-      results: ['40% faster shipping processing', '25% reduction in logistics costs', '99.9% uptime reliability']
-    },
-    {
-      title: 'GenovaThera Website',
-      description: 'A sophisticated pharmaceutical company website showcasing biotech solutions and rare disease therapies. Features interactive product catalogs, research publications, clinical trial information, and secure patient portals.',
-      category: 'Corporate Website',
-      technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Strapi CMS'],
-      image: 'https://readdy.ai/api/search-image?query=pharmaceutical%20company%20website%20design%2C%20medical%20and%20healthcare%20interface%2C%20clean%20professional%20layout%2C%20biotech%20solutions%20presentation%2C%20modern%20medical%20branding%2C%20blue%20and%20white%20color%20scheme%2C%20scientific%20and%20trustworthy%20design%2C%20advanced%20medical%20technology%2C%203D%20molecular%20structures&width=600&height=400&seq=genovathera-website-detail&orientation=landscape',
-      results: ['300% increase in lead generation', 'HIPAA compliant security', '50% improvement in user engagement']
-    },
-    {
-      title: 'Neon Edge Game',
-      description: 'A competitive gaming experience featuring AI-enhanced gameplay, advanced combo systems, stunning visual effects, and real-time multiplayer capabilities. Developed using Unity with custom shaders and particle systems.',
-      category: 'Game Development',
-      technologies: ['Unity', 'C#', 'Photon Network', 'Custom Shaders'],
-      image: 'https://readdy.ai/api/search-image?query=futuristic%20neon%20game%20interface%2C%20cyberpunk%20gaming%20UI%2C%20competitive%20esports%20game%20design%2C%20neon%20blue%20and%20purple%20colors%2C%20modern%20gaming%20graphics%2C%20action%20game%20interface%2C%20digital%20entertainment%2C%203D%20gaming%20environment%2C%20holographic%20effects&width=600&height=400&seq=neon-edge-game-detail&orientation=landscape',
-      results: ['100K+ active players', '4.8/5 user rating', 'Featured on Steam']
-    },
-    {
-      title: 'FinTech Mobile App',
-      description: 'A secure mobile banking application with biometric authentication, real-time transactions, investment tracking, and AI-powered financial insights. Built with React Native and integrated with banking APIs.',
-      category: 'Mobile App',
-      technologies: ['React Native', 'Redux', 'Firebase', 'Plaid API'],
-      image: 'https://readdy.ai/api/search-image?query=modern%20mobile%20banking%20app%20interface%2C%20fintech%20application%20design%2C%20secure%20financial%20dashboard%2C%20clean%20minimalist%20UI%2C%20blue%20and%20white%20color%20scheme%2C%20mobile%20banking%20features%2C%20transaction%20history%2C%20investment%20tracking%2C%203D%20financial%20charts&width=600&height=400&seq=fintech-mobile-app&orientation=landscape',
-      results: ['500K+ downloads', 'Bank-grade security', '95% user satisfaction']
-    },
-    {
-      title: 'AI Analytics Dashboard',
-      description: 'An intelligent business analytics platform powered by machine learning algorithms. Features predictive analytics, automated reporting, data visualization, and real-time business intelligence insights.',
-      category: 'Web Platform',
-      technologies: ['Vue.js', 'Python', 'TensorFlow', 'PostgreSQL'],
-      image: 'https://readdy.ai/api/search-image?query=AI%20analytics%20dashboard%20interface%2C%20business%20intelligence%20platform%2C%20data%20visualization%20charts%2C%20machine%20learning%20insights%2C%20modern%20dark%20theme%20UI%2C%20predictive%20analytics%2C%20real-time%20data%20monitoring%2C%203D%20data%20representations&width=600&height=400&seq=ai-analytics-dashboard&orientation=landscape',
-      results: ['60% faster decision making', 'AI-powered predictions', '200% ROI improvement']
-    },
-    {
-      title: 'E-Learning Platform',
-      description: 'A comprehensive online education platform with interactive courses, video streaming, progress tracking, and collaborative learning tools. Supports multiple content formats and assessment methods.',
-      category: 'Web Platform',
-      technologies: ['Angular', 'Node.js', 'MongoDB', 'WebRTC'],
-      image: 'https://readdy.ai/api/search-image?query=modern%20e-learning%20platform%20interface%2C%20online%20education%20dashboard%2C%20course%20management%20system%2C%20video%20streaming%20interface%2C%20student%20progress%20tracking%2C%20clean%20educational%20design%2C%20interactive%20learning%20tools%2C%203D%20educational%20elements&width=600&height=400&seq=elearning-platform&orientation=landscape',
-      results: ['50K+ students enrolled', '98% course completion rate', 'Multi-language support']
-    }
-  ];
+type ProjectCategory = 'apps' | 'websites' | 'games';
 
-  const categories = ['All', 'Web Platform', 'Mobile App', 'Game Development', 'Corporate Website'];
+type Project = {
+  key: string;
+  name: string;
+  description: string;
+  features: string[];
+  image?: string;
+  liveLink?: string;
+  appStoreLink?: string;
+  playStoreLink?: string;
+  isModal?: boolean;
+};
+
+type DisplayProject = Project & { categoryId: ProjectCategory };
+
+type CategoryInfo = {
+  id: ProjectCategory;
+  label: string;
+  description: string;
+};
+
+const asset = (path?: string) => (path ? `https://quadravexa.com${path}` : undefined);
+
+const PORTFOLIO_PROJECTS: Record<ProjectCategory, Project[]> = {
+  apps: [
+    {
+      key: 'school-system',
+      name: 'School Management System',
+      description:
+        'A complete system for managing exams and homework. Features role-based access for Teachers, Students, and Parents, with automated exam corrections and detailed reporting.',
+      features: [
+        '4 User Roles (Admin, Teacher, Student, Parent)',
+        'Automated Exam Grading',
+        'Homework Submission & Tracking',
+        'Parental Absence Requests',
+        'Detailed Grade Reporting'
+      ],
+      isModal: true
+    },
+    {
+      key: 'pulse-hr',
+      name: 'PulseHR',
+      description:
+        'A mini HR system for small to medium-sized businesses. Manage employees, approve leave, and run payroll with role-based dashboards for employees and HR managers.',
+      features: [
+        'Role-Based Dashboards (Employee/HR)',
+        'Leave Request & Approval System',
+        'Employee Attendance Tracking',
+        'Simplified Payroll Simulation',
+        'Company Analytics Overview'
+      ],
+      isModal: true
+    },
+    {
+      key: 'food-order',
+      name: 'FoodOrder',
+      description:
+        'A fully interactive food ordering application built with React. Experience a seamless and responsive interface for browsing the menu, managing your cart, and placing orders in real-time. Includes full admin controls.',
+      features: [
+        'Interactive Menu & Cart',
+        'Real-Time Order Updates',
+        'Dynamic Item Management (Admin)',
+        'Password-Protected Order History',
+        'Modern, Responsive Interface'
+      ],
+      isModal: true
+    },
+    {
+      key: 'shipping-express',
+      name: 'Shipping Express',
+      description:
+        'A full-featured shipping platform simulation. Manage clients, couriers, and the entire delivery lifecycle from booking to proof of delivery. Includes role-based access for Admins, Clients, and Couriers.',
+      features: [
+        'Role-Based Dashboards',
+        'Shipment Creation & Tracking',
+        'Live Status Updates',
+        'Digital Signature Capture',
+        'Admin Oversight Panel'
+      ],
+      isModal: true
+    }
+  ],
+  websites: [
+    {
+      key: 'shuhna',
+      name: 'Shuhna',
+      description:
+        'A comprehensive logistics platform for e-commerce businesses, allowing management of shipments across multiple carriers from a single dashboard.',
+      features: [
+        'Multi-Carrier Integration',
+        'Centralized Shipment Tracking',
+        'Automated Shipping Policies',
+        'Cash on Delivery Management',
+        'E-commerce Platform Integration'
+      ],
+      liveLink: 'https://www.shuhna.net/',
+      image: asset('/assets/images/shuhna.png')
+    },
+    {
+      key: 'genovathera',
+      name: 'GenovaThera',
+      description:
+        'A specialized pharmaceutical company website bringing innovative biotech solutions and rare disease therapies to patients across Egypt and the MENA region.',
+      features: [
+        'Precision Commercialization',
+        'Scientific & Regional Expertise',
+        'Regulatory & Access Navigation',
+        'Biotech & Pharma Partnerships',
+        'Focus on Egypt & MENA Markets'
+      ],
+      liveLink: 'https://genovathera.com',
+      image: asset('/assets/images/GenovaThera.png')
+    },
+    {
+      key: 'aura-threads',
+      name: 'Aura & Threads',
+      description:
+        'A sleek and modern e-commerce platform simulation for a high-end perfume and clothing brand. Experience a seamless shopping journey from product browsing to checkout.',
+      features: [
+        'Interactive Product Grid & Filtering',
+        'Dynamic Shopping Cart',
+        'Simulated Checkout Process',
+        'Responsive for Mobile & Desktop'
+      ],
+      isModal: true
+    }
+  ],
+  games: [
+    {
+      key: 'edu-adventure',
+      name: 'EduAdventure',
+      description:
+        "A fun and interactive learning game for kids. Master basic math and English concepts through engaging quizzes and colorful visuals.",
+      features: [
+        'Math & English subjects',
+        'Multiple progressive levels',
+        'Counting & equation challenges',
+        'Object & word identification',
+        'Kid-friendly interface'
+      ],
+      image: asset('/assets/images/edu-adventure.png')
+    },
+    {
+      key: 'chess',
+      name: 'Chess',
+      description:
+        'The classic game of strategy and tactics. Play against a computer opponent in a sleek, modern interface. Checkmate the king to win.',
+      features: [
+        'Modern & Sleek Interface',
+        'Challenging AI Opponent',
+        'Valid Move Highlighting',
+        'Check & Checkmate Detection'
+      ],
+      image: asset('/assets/images/chess.png')
+    },
+    {
+      key: 'sudoku',
+      name: 'Sudoku',
+      description:
+        'A classic logic puzzle. Fill the 9x9 grid so that each column, each row, and each of the nine 3x3 subgrids contain all of the digits from 1 to 9.',
+      features: [
+        'Classic 9x9 Grid',
+        'Three Difficulty Levels',
+        'Mistake Counter',
+        'Clean, Minimalist UI'
+      ],
+      image: asset('/assets/images/sudoku.png')
+    },
+    {
+      key: 'neon-edge',
+      name: 'Neon Edge',
+      description:
+        'A futuristic 2D fighting game with a deep combat system. Choose from four unique fighters—Striker, Phantom, Titan, or Assassin—and battle against a challenging AI opponent in a vibrant neon world.',
+      features: [
+        '4 Unique Fighter Archetypes',
+        'Character Select Screen',
+        'Combo & Damage System',
+        'Advanced AI Opponent'
+      ],
+      image: asset('/assets/images/neon-edge.png')
+    }
+  ]
+};
+
+const CATEGORY_INFO: CategoryInfo[] = [
+  {
+    id: 'apps',
+    label: 'Apps',
+    description: 'Intuitive and powerful applications for mobile and desktop.'
+  },
+  {
+    id: 'websites',
+    label: 'Websites',
+    description: 'Modern, responsive, and performant websites for businesses and individuals.'
+  },
+  {
+    id: 'games',
+    label: 'Games',
+    description: 'Immersive and entertaining games for desktop and mobile platforms.'
+  }
+];
+
+const CATEGORY_LABEL = CATEGORY_INFO.reduce<Record<ProjectCategory, string>>((acc, info) => {
+  acc[info.id] = info.label;
+  return acc;
+}, {} as Record<ProjectCategory, string>);
+
+const FILTERS: { id: 'all' | ProjectCategory; label: string }[] = [
+  { id: 'all', label: 'All' },
+  ...CATEGORY_INFO.map(({ id, label }) => ({ id, label }))
+];
+
+const FLATTENED_PROJECTS: DisplayProject[] = (Object.entries(PORTFOLIO_PROJECTS) as [ProjectCategory, Project[]][])
+  .flatMap(([categoryId, entries]) => entries.map((entry) => ({ ...entry, categoryId })));
+
+export default function Portfolio() {
+  const [activeCategory, setActiveCategory] = useState<'all' | ProjectCategory>('all');
+
+  const visibleProjects = useMemo(() => {
+    if (activeCategory === 'all') {
+      return FLATTENED_PROJECTS;
+    }
+
+    return FLATTENED_PROJECTS.filter((project) => project.categoryId === activeCategory);
+  }, [activeCategory]);
+
+  const activeMeta = activeCategory === 'all' ? null : CATEGORY_INFO.find((info) => info.id === activeCategory);
 
   const handleNavigation = (path: string) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => {
       window.REACT_APP_NAVIGATE(path);
     }, 100);
+  };
+
+  const openExternal = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -94,17 +274,23 @@ export default function Portfolio() {
         <div className="container mx-auto px-6 relative z-10">
           <ScrollAnimationWrapper animation="scroll-slide-left">
             <div className="flex flex-wrap justify-center gap-4">
-              {categories.map((category, index) => (
+              {FILTERS.map((filter) => (
                 <Button
-                  key={index}
-                  variant={index === 0 ? '3d-primary' : '3d-secondary'}
+                  key={filter.id}
+                  variant={filter.id === activeCategory ? '3d-primary' : '3d-secondary'}
                   size="sm"
                   className="stagger-3d-1"
+                  onClick={() => setActiveCategory(filter.id)}
                 >
-                  {category}
+                  {filter.label}
                 </Button>
               ))}
             </div>
+            {activeMeta && (
+              <p className="text-center text-gray-400 mt-6 max-w-2xl mx-auto">
+                {activeMeta.description}
+              </p>
+            )}
           </ScrollAnimationWrapper>
         </div>
       </section>
@@ -116,7 +302,12 @@ export default function Portfolio() {
         
         <div className="container mx-auto px-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {projects.map((project, index) => (
+            {visibleProjects.map((project, index) => {
+              const categoryLabel = CATEGORY_LABEL[project.categoryId];
+              const hasLinks = Boolean(project.liveLink || project.appStoreLink || project.playStoreLink);
+              const hasImage = Boolean(project.image);
+
+              return (
               <ScrollAnimationWrapper 
                 key={index}
                 animation={index % 2 === 0 ? 'scroll-slide-left' : 'scroll-slide-right'}
@@ -124,20 +315,33 @@ export default function Portfolio() {
               >
                 <div className="card-3d rounded-xl overflow-hidden hover:border-cyan-500 group">
                   <div className="relative h-64 overflow-hidden">
-                    <img 
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                    {hasImage ? (
+                      <>
+                        <img
+                          src={project.image}
+                          alt={project.name}
+                          className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 to-transparent"></div>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center text-center p-6">
+                        <div className="space-y-3">
+                          <i className="ri-lightbulb-flash-line text-4xl text-cyan-400"></i>
+                          <p className="text-lg font-semibold text-white leading-snug">
+                            {project.name}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <div className="absolute top-4 left-4">
                       <span className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                        {project.category}
+                        {categoryLabel}
                       </span>
                     </div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors duration-300">
-                        {project.title}
+                        {project.name}
                       </h3>
                     </div>
                   </div>
@@ -146,26 +350,21 @@ export default function Portfolio() {
                     <p className="text-gray-400 leading-relaxed mb-6 group-hover:text-gray-300 transition-colors duration-300">
                       {project.description}
                     </p>
-                    
-                    <div className="mb-6">
-                      <h4 className="text-sm font-semibold text-cyan-400 mb-3">Technologies Used:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {project.technologies.map((tech, techIndex) => (
-                          <span 
-                            key={techIndex}
-                            className="bg-gray-800/50 text-gray-300 px-3 py-1 rounded-full text-sm border border-gray-700 group-hover:border-cyan-500/50 transition-colors duration-300"
-                          >
-                            {tech}
-                          </span>
-                        ))}
+
+                    {project.isModal && (
+                      <div className="mb-6">
+                        <span className="inline-flex items-center text-xs font-semibold uppercase tracking-widest text-cyan-400 bg-cyan-400/10 border border-cyan-400/30 px-3 py-1 rounded-full">
+                          <i className="ri-flashlight-fill mr-2"></i>
+                          Interactive demo showcased on quadravexa.com
+                        </span>
                       </div>
-                    </div>
+                    )}
                     
                     <div className="mb-6">
-                      <h4 className="text-sm font-semibold text-cyan-400 mb-3">Key Results:</h4>
+                      <h4 className="text-sm font-semibold text-cyan-400 mb-3">Key Features:</h4>
                       <ul className="space-y-2">
-                        {project.results.map((result, resultIndex) => (
-                          <li key={resultIndex} className="flex items-center text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
+                        {project.features.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-center text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
                             <AnimatedIcon 
                               icon="ri-check-line"
                               size="sm"
@@ -173,26 +372,59 @@ export default function Portfolio() {
                               gradient="from-green-500 to-emerald-600"
                               className="mr-3"
                             />
-                            {result}
+                            {feature}
                           </li>
                         ))}
                       </ul>
                     </div>
                     
-                    <div className="flex gap-4">
-                      <Button variant="3d-primary" size="sm">
-                        <i className="ri-eye-line mr-2"></i>
-                        View Details
-                      </Button>
-                      <Button variant="3d-secondary" size="sm">
-                        <i className="ri-external-link-line mr-2"></i>
-                        Live Demo
-                      </Button>
+                    <div className="flex flex-wrap gap-4">
+                      {project.liveLink && (
+                        <Button
+                          variant="3d-primary"
+                          size="sm"
+                          onClick={() => openExternal(project.liveLink!)}
+                        >
+                          <i className="ri-external-link-line mr-2"></i>
+                          Visit Website
+                        </Button>
+                      )}
+                      {project.appStoreLink && (
+                        <Button
+                          variant="3d-secondary"
+                          size="sm"
+                          onClick={() => openExternal(project.appStoreLink!)}
+                        >
+                          <i className="ri-apple-fill mr-2"></i>
+                          App Store
+                        </Button>
+                      )}
+                      {project.playStoreLink && (
+                        <Button
+                          variant="3d-secondary"
+                          size="sm"
+                          onClick={() => openExternal(project.playStoreLink!)}
+                        >
+                          <i className="ri-google-play-fill mr-2"></i>
+                          Play Store
+                        </Button>
+                      )}
+                      {!hasLinks && (
+                        <Button
+                          variant="3d-secondary"
+                          size="sm"
+                          onClick={() => handleNavigation('/contact')}
+                        >
+                          <i className="ri-message-3-line mr-2"></i>
+                          Request Demo
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
               </ScrollAnimationWrapper>
-            ))}
+            );
+            })}
           </div>
         </div>
       </section>
